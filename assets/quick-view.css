@@ -1,0 +1,177 @@
+.quick-view-btn {
+    position: absolute !important;
+    z-index: 10;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+    display:none;
+    padding: 6px;
+    align-items: center;
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    border-color: transparent;
+    box-shadow: var(--shadow-popover);
+    pointer-events: all;
+    position: relative;
+    overflow: hidden;
+    border-radius: 100px;
+    cursor: pointer;
+  width: fit-content;
+  }
+  .product-card__content:hover .quick-view-btn{
+    display:grid;
+    will-change: margin,opacity;
+    animation: elementSlideInTop var(--animation-speed) var(--animation-easing);
+  } 
+  .quick-view-btn .quick-add__button:is(:focus, :hover) .add-to-cart-text {
+    gap: var(--gap-2xs);
+  }
+
+  .quick-view-content .qv-image,
+  .quick-view-content .qv-price,
+  .quick-view-content .qv-description,
+  .quick-view-content .add-to-cart-button{
+    margin-bottom:15px;
+    display: block;
+  }
+
+  .quick-view-content .qv-price {
+    font-size: 18px;
+  }
+
+  .active-image {
+  outline: 3px solid limegreen;
+  }
+  .hidden-image {
+    display:none !important;
+  }
+
+
+  /* === Quick View Variant Selector === */
+  .qv-variants {
+    margin: 1rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .qv-variants label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-foreground, #222);
+  }
+
+  #qv-variant-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-color: var(--color-background, #fff);
+    border: 1px solid var(--color-border, #d9d9d9);
+    border-radius: 6px;
+    padding: 10px 38px 10px 12px;
+    font-size: 15px;
+    color: var(--color-foreground, #333);
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    background-image: url("data:image/svg+xml,%3Csvg fill='%23444' height='18' viewBox='0 0 24 24' width='18' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 14px;
+  }
+
+  #qv-variant-select:hover {
+    border-color: var(--color-accent, #999);
+  }
+
+  #qv-variant-select:focus {
+    border-color: var(--color-accent, #000);
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Optional: dark mode support */
+  @media (prefers-color-scheme: dark) {
+    #qv-variant-select {
+      background-color: #222;
+      color: #eee;
+      border-color: #444;
+    }
+    #qv-variant-select:hover {
+      border-color: #666;
+    }
+  }
+
+
+  /* Placement rules */
+  .quick-view-btn[data-desktop-position="top-left"] { top: 10px; left: 10px; }
+  .quick-view-btn[data-desktop-position="top-right"] { top: 10px; right: 10px; }
+  .quick-view-btn[data-desktop-position="center"] {
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+  }
+  .quick-view-btn[data-desktop-position="bottom-left"] { bottom: 10px; left: 10px; }
+  .quick-view-btn[data-desktop-position="bottom-right"] { bottom: 10px; right: 10px; }
+
+  @media (max-width: 768px) {
+    .quick-view-btn {
+      font-size: {{ settings.font_size_mobile }}px;
+    }
+    .quick-view-btn[data-mobile-position="top-left"] { top: 10px; left: 10px; }
+    .quick-view-btn[data-mobile-position="top-right"] { top: 10px; right: 10px; }
+    .quick-view-btn[data-mobile-position="center"] {
+      top: 50%; left: 50%; transform: translate(-50%, -50%);
+    }
+    .quick-view-btn[data-mobile-position="bottom-left"] { bottom: 10px; left: 10px; }
+    .quick-view-btn[data-mobile-position="bottom-right"] { bottom: 10px; right: 10px; }
+  }
+
+
+.quick-view-popup {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+}
+
+.quick-view-popup.active {
+  display: flex;
+}
+
+.quick-view-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+}
+
+.quick-view-content {
+  position: relative;
+  background: #fff;
+  padding: 20px;
+  max-width: 600px;
+  width: 90%;
+  border-radius: 10px;
+  z-index: 2;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.quick-view-close {
+position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 22px;
+  background: black;
+  border: none;
+  cursor: pointer;
+  width: 29px;
+  color: #fff;
+  border-radius: 50%;
+  width: 29px;
+}  
+
+
+.no-scroll {
+  overflow: hidden;
+}
+
+  

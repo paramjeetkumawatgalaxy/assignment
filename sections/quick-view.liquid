@@ -1,0 +1,49 @@
+<div id="quick-view-popup" class="quick-view-popup">
+  <div class="quick-view-overlay"></div>
+  <div class="quick-view-content">
+    <button class="quick-view-close">×</button>
+    <div id="quick-view-body"></div>
+  </div>
+</div>
+
+<script>
+  window.quickViewBlocks = [
+    {% for block in section.blocks %}
+      "{{ block.type }}"{% unless forloop.last %},{% endunless %}
+    {% endfor %}
+  ];
+  window.quickViewFontSizes = {
+    desktop: {{ settings.font_size_desktop }},
+    mobile: {{ settings.font_size_mobile }},
+    lhd: {{ settings.line_height_desktop }},
+    lhm: {{ settings.line_height_mobile }}
+  };
+</script>
+
+{% schema %}
+{
+  "name": "Quick View Settings",
+  "blocks": [
+    { "type": "title", "name": "Title" },
+    { "type": "image", "name": "Image" },
+    { "type": "price", "name": "Price" },
+    { "type": "description", "name": "Description" },
+    { "type": "variants", "name": "Variant Selector" },
+    { "type": "add_to_cart", "name": "Add to Cart Button" }
+  ],
+  "presets": [
+    {
+      "name": "Quick View Configuration",
+      "category": "Product",
+      "blocks": [
+        { "type": "image" },
+        { "type": "title" },
+        { "type": "price" },
+        { "type": "description" },
+        { "type": "variants" },
+        { "type": "add_to_cart" }
+      ]
+    }
+  ]
+}
+{% endschema %}
