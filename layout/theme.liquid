@@ -62,11 +62,15 @@
 
     {% render 'search-modal' %}
 
+    <!-- Render Quick View Model -->
     {% if settings.quick_add or settings.mobile_quick_add %}
       {% render 'quick-add-modal' %}
     {% endif %}
 
+    <!-- Quick View Style -->
     <link rel="stylesheet" href="{{ 'quick-view.css' | asset_url }}">
+
+    <!-- Quick View JS -->
     <script src="{{ 'quick-view.js' | asset_url }}" defer></script>
     
   </body>
