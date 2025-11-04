@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
 			const cartRes = await fetch("/cart.js");
 			if (!cartRes.ok) throw new Error("Cart fetch failed");
 			const cartData = await cartRes.json();
-			const itemCount = cartData.item_count || 0;
+			const itemCount = cartData.item_count || 0; 
 
 			// --- Update cart bubble (for Horizon)
 			const cartIcon = document.querySelector("cart-icon");

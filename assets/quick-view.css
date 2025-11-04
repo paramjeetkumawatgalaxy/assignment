@@ -13,7 +13,7 @@
     pointer-events: all;
     position: relative;
     overflow: hidden;
-    border-radius: 100px;
+    border-radius: 100px; 
     cursor: pointer;
   width: fit-content;
   }
