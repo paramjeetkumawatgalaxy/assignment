@@ -1,23 +1,24 @@
 <div id="quick-view-popup" class="quick-view-popup">
   <div class="quick-view-overlay"></div>
   <div class="quick-view-content">
-    <button class="quick-view-close">×</button>
+    <button type="button" class="quick-view-close" aria-label="Close quick view" data-qv-close>
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
     <div id="quick-view-body"></div>
   </div>
-</div>
-
+</div> 
+<style>
+  #quick-view-popup { font-size: {{ settings.font_size_desktop }}px; line-height: {{ settings.line_height_desktop }}px; }
+  @media (max-width: 767px) {
+    #quick-view-popup { font-size: {{ settings.font_size_mobile }}px; line-height:{{ settings.line_height_mobile }}px; }
+  }
+</style>
 <script>
   window.quickViewBlocks = [
     {% for block in section.blocks %}
       "{{ block.type }}"{% unless forloop.last %},{% endunless %}
     {% endfor %}
   ];
-  window.quickViewFontSizes = {
-    desktop: {{ settings.font_size_desktop }},
-    mobile: {{ settings.font_size_mobile }},
-    lhd: {{ settings.line_height_desktop }},
-    lhm: {{ settings.line_height_mobile }}
-  };
 </script>
 
 {% schema %}

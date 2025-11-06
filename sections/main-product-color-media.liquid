@@ -8,24 +8,21 @@ Compatible with Horizon theme and Shopify 2.0
 --------------------------------------------------------------------
 {% endcomment %}
 
-<section id="Product-{{ section.id }}" class="page-width product-section" data-section-id="{{ section.id }}">
-  <div class="product-grid">
+<section id="Product-{{ section.id }}" class="custom-page-width custom-product-section"
+  data-section-id="{{ section.id }}">
+  <div class="custom-product-grid">
 
     <!-- PRODUCT MEDIA -->
-    <div class="product-information__media">
+    <div class="custom-product-information__media">
       {% for media in product.media %}
-        <div class="product-media-item">
-          <img
-            src="{{ media | image_url: width: 1000 }}"
-            alt="{{ media.alt | escape }}"
-            class="product-media-img"
-          >
-        </div>
+      <div class="product-media-item">
+        <img src="{{ media | image_url: width: 1000 }}" height="" width=""  alt="{{ media.alt | escape }}" class="product-media-img" />
+      </div>
       {% endfor %}
     </div>
 
     <!-- PRODUCT INFO -->
-    <div class="product-information">
+    <div class="custom-product-information">
       <h1 class="product-title">{{ product.title }}</h1>
 
       <!-- PRICE -->
@@ -33,46 +30,28 @@ Compatible with Horizon theme and Shopify 2.0
         {{ product.selected_or_first_available_variant.price | money }}
       </div>
 
-      <!-- COLOR OPTION -->
+      {% if product.options_with_values.size > 0 %}
       {% for option in product.options_with_values %}
-        {% if option.name == 'Color' %}
-          <fieldset
-            class="product-option-fieldset"
-            data-option-id="{{ option.position }}"
-            data-option-name="{{ option.name }}"
-          >
-            <legend class="form-label">{{ option.name }}</legend>
-            <div class="color-options">
-              {% for value in option.values %}
-                <label class="color-option-label">
-                  <input
-                    type="radio"
-                    name="Color"
-                    value="{{ value }}"
-                    {% if option.selected_value == value %}checked{% endif %}
-                  >
-                  <span>{{ value }}</span>
-                </label>
-              {% endfor %}
-            </div>
-          </fieldset>
-        {% endif %}
+      <div class="qv-option-block" data-option="{{ option.name }}">
+        <label>{{ option.name }}</label>
+        <div class="qv-option-values">
+          {% for value in option.values %}
+          <button type="button" class="qv-option-btn {% if forloop.first %}active{% endif %}"
+            data-option-name="{{ option.name }}" data-option-value="{{ value }}">
+            {{ value }}
+          </button>
+          {% endfor %}
+        </div>
+      </div>
       {% endfor %}
+      {% endif %}
+
 
       <!-- ADD TO CART FORM -->
-      <form
-        method="post"
-        action="/cart/add"
-        id="product-form-{{ section.id }}"
-        class="product-form"
-        enctype="multipart/form-data"
-      >
-        <input
-          type="hidden"
-          name="id"
-          value="{{ product.selected_or_first_available_variant.id }}"
-          id="selected-variant-id"
-        >
+      <form method="post" action="/cart/add" id="product-form-{{ section.id }}" class="product-form"
+        enctype="multipart/form-data">
+        <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}"
+          id="selected-variant-id">
         <button type="submit" class="button button--primary" id="add-to-cart-btn">
           Add to cart
         </button>
@@ -80,449 +59,159 @@ Compatible with Horizon theme and Shopify 2.0
       </form>
 
       {% if product.description != blank %}
-        <div class="product-description rte">
-          {{ product.description }}
-        </div>
+      <div class="product-description rte">
+        {{ product.description }}
+      </div>
       {% endif %}
     </div>
   </div>
 
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-  const colorInputs = document.querySelectorAll('input[name="Color"]');
-  const images = document.querySelectorAll('.product-information__media img');
-  const priceEl = document.querySelector('[data-price]');
-  const variantIdInput = document.getElementById('selected-variant-id');
-  const addToCartBtn = document.getElementById('add-to-cart-btn');
-  const statusMsg = document.querySelector('.cart-status-message');
-  const variants = {{ product.variants | json }};
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const priceEl = document.querySelector("[data-price]");
+      const variantIdInput = document.getElementById("selected-variant-id");
+      const addToCartBtn = document.getElementById("add-to-cart-btn");
+      const statusMsg = document.querySelector(".cart-status-message");
+      const productForm = document.querySelector("#product-form-{{ section.id }}");
+      const variants = {{ product.variants | json
+    }};
+    const productOptions = {{ product.options_with_values | json }};
 
-  // Universal Shopify money formatter
-function formatMoney(cents) {
-  return "$" + (cents / 100).toFixed(2); // Change ₹ to your currency
-}
-
-
-
-  // Filter images by color
-  function updateImages(selectedColor) {
-    images.forEach((img) => {
-      const alt = img.alt.trim().toLowerCase();
-      if (alt.includes(selectedColor.toLowerCase())) {
-        img.classList.remove('hidden-by-color');
-      } else {
-        img.classList.add('hidden-by-color');
-      }
-    });
-  }
-
-  // Find and update variant
-  function updateVariant(selectedColor) {
-    let match = null;
-
-    // Find variant where option1 (Color) matches the selected color
-    for (let v of variants) {
-      if (v.option1 && v.option1.toLowerCase() === selectedColor.toLowerCase()) {
-        match = v;
-        break;
-      }
+    // --- Shopify money formatter ---
+    function formatMoney(cents) {
+      return "₹" + (cents / 100).toFixed(2); // Change to your currency symbol
     }
 
-    if (match) {
-      variantIdInput.value = match.id;
-      priceEl.innerHTML = formatMoney(match.price);
-      addToCartBtn.disabled = !match.available;
-      addToCartBtn.textContent = match.available ? "Add to cart" : "Sold out";
-    } else {
-      // fallback if variant not found
-      priceEl.innerHTML = formatMoney({{ product.selected_or_first_available_variant.price }});
-    }
-  }
+    // --- Get current selected option values (Color, Size, etc.) ---
+    function getSelectedOptions() {
+      const selected = {};
+      const groups = document.querySelectorAll(".product-option-fieldset, .qv-option-block");
 
-  // AJAX Add to Cart
-  async function ajaxAddToCart(variantId) {
-    try {
-      addToCartBtn.disabled = true;
-      addToCartBtn.textContent = "Adding...";
-
-      const res = await fetch("/cart/add.js", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: variantId, quantity: 1 }),
+      groups.forEach((group) => {
+        const input = group.querySelector("input[type='radio']:checked, .qv-option-btn.active");
+        if (input) {
+          const name = group.dataset.optionName || group.getAttribute("data-option");
+          const value = input.value || input.getAttribute("data-option-value");
+          selected[name] = value;
+        }
       });
 
-      if (!res.ok) throw new Error("Add to cart failed");
-      const data = await res.json();
-
-      statusMsg.textContent = `${data.title} added to cart`;
-      statusMsg.style.display = "block";
-      statusMsg.style.color = "green";
-
-      // Refresh cart bubble
-      const cartRes = await fetch("/cart.js");
-      const cartData = await cartRes.json();
-      const bubble = document.querySelector(".cart-bubble__text-count");
-      if (bubble) bubble.textContent = cartData.item_count;
-
-      addToCartBtn.textContent = "Add to cart";
-      addToCartBtn.disabled = false;
-
-    } catch (err) {
-      console.error(err);
-      statusMsg.textContent = "Error adding to cart";
-      statusMsg.style.display = "block";
-      statusMsg.style.color = "red";
-      addToCartBtn.textContent = "Add to cart";
-      addToCartBtn.disabled = false;
+      return selected;
     }
+
+    // --- Find matching variant ---
+    function findMatchingVariant(selected) {
+      return variants.find((variant) => {
+        return productOptions.every((opt, i) => {
+          const optName = opt.name;
+          const optValue = selected[optName];
+          const variantValue = variant[`option${i + 1}`];
+          return optValue && variantValue && optValue.toLowerCase() === variantValue.toLowerCase();
+        });
+      });
+    }
+
+    // --- Update product images (by color) ---
+    function updateImages(selectedColor) {
+      const mediaItems = document.querySelectorAll(".product-media-item");
+      mediaItems.forEach((item) => {
+        const img = item.querySelector("img");
+        if (!img) return;
+        const alt = img.alt.trim().toLowerCase();
+        const match = alt.includes(selectedColor.toLowerCase());
+        item.classList.toggle("hidden-by-color", !match);
+      });
+    }
+
+    // --- Update UI for selected variant ---
+    function updateVariantUI(variant) {
+      if (!variant) {
+        priceEl.innerHTML = formatMoney({{ product.selected_or_first_available_variant.price }});
+      addToCartBtn.disabled = true;
+      addToCartBtn.textContent = "Unavailable";
+      return;
+    }
+
+    variantIdInput.value = variant.id;
+    priceEl.innerHTML = formatMoney(variant.price);
+    addToCartBtn.disabled = !variant.available;
+    addToCartBtn.textContent = variant.available ? "Add to cart" : "Sold out";
   }
 
-  // Color option change event
-  colorInputs.forEach((input) => {
-    input.addEventListener("change", (e) => {
-      const selectedColor = e.target.value;
-      updateImages(selectedColor);
-      updateVariant(selectedColor);
-    });
-  });
+    // --- AJAX Add to Cart ---
+    async function ajaxAddToCart(variantId) {
+      try {
+        addToCartBtn.disabled = true;
+        addToCartBtn.textContent = "Adding...";
 
-  // Handle Add to Cart (AJAX)
-  document.querySelector(`#product-form-{{ section.id }}`).addEventListener("submit", function (e) {
-    e.preventDefault();
-    const variantId = variantIdInput.value;
-    ajaxAddToCart(variantId);
-  });
+        const res = await fetch("/cart/add.js", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: variantId, quantity: 1 }),
+        });
 
-  //  Initial state
-  const checked = document.querySelector('input[name="Color"]:checked');
-  if (checked) {
-    updateImages(checked.value);
-    updateVariant(checked.value);
-  }
-});
+        if (!res.ok) throw new Error("Add to cart failed");
+        const data = await res.json();
 
-(function(){
-  function initVariantLabels(root = document) {
-    // find all radio groups in fieldsets by option name
-    const groups = root.querySelectorAll('fieldset[data-option-name], .product-option-fieldset');
-    groups.forEach(group => {
-      // set initial active states
-      group.querySelectorAll('label').forEach(l => l.classList.remove('active'));
-      const checked = group.querySelector('input[type="radio"]:checked');
-      if (checked) {
-        // pattern B: input inside label -> the label is closest parent
-        const parentLabel = checked.closest('label');
-        if (parentLabel) parentLabel.classList.add('active');
+        statusMsg.textContent = `${data.title} added to cart`;
+        statusMsg.style.display = "block";
+        statusMsg.style.color = "green";
 
-        // pattern A: input + label[for]
-        const id = checked.id;
-        if (id) {
-          const labelFor = group.querySelector('label[for="' + id + '"]');
-          if (labelFor) labelFor.classList.add('active');
-        }
+        // Refresh cart bubble
+        const cartRes = await fetch("/cart.js");
+        const cartData = await cartRes.json();
+        const bubble = document.querySelector(".cart-bubble__text-count");
+        if (bubble) bubble.textContent = cartData.item_count;
+
+        addToCartBtn.textContent = "Add to cart";
+        addToCartBtn.disabled = false;
+      } catch (err) {
+        console.error(err);
+        statusMsg.textContent = "Error adding to cart";
+        statusMsg.style.display = "block";
+        statusMsg.style.color = "red";
+        addToCartBtn.textContent = "Add to cart";
+        addToCartBtn.disabled = false;
+      }
+    }
+
+    // --- Handle option change (for both radio + button) ---
+    document.addEventListener("click", function (e) {
+      if (e.target.matches(".qv-option-btn")) {
+        const group = e.target.closest(".qv-option-block");
+        group.querySelectorAll(".qv-option-btn").forEach((btn) => btn.classList.remove("active"));
+        e.target.classList.add("active");
+
+        const selected = getSelectedOptions();
+        const variant = findMatchingVariant(selected);
+
+        if (selected.Color) updateImages(selected.Color);
+        updateVariantUI(variant);
       }
     });
-  }
 
-  // listen for changes (covers user clicks and keyboard)
-  document.addEventListener('change', function(e){
-    if (!e.target.matches('fieldset[data-option-name] input[type="radio"], .product-option-fieldset input[type="radio"]')) return;
-    const group = e.target.closest('fieldset[data-option-name], .product-option-fieldset');
-    if (!group) return;
-    // remove active from siblings
-    group.querySelectorAll('label').forEach(l => l.classList.remove('active'));
-    // add to current
-    const parentLabel = e.target.closest('label');
-    if (parentLabel) parentLabel.classList.add('active');
+    document.addEventListener("change", function (e) {
+      if (e.target.matches(".product-option-fieldset input[type='radio']")) {
+        const selected = getSelectedOptions();
+        const variant = findMatchingVariant(selected);
 
-    // also handle label[for] case
-    const id = e.target.id;
-    if (id) {
-      const labelFor = group.querySelector('label[for="' + id + '"]');
-      if (labelFor) labelFor.classList.add('active');
-    }
-  }, false);
+        if (selected.Color) updateImages(selected.Color);
+        updateVariantUI(variant);
+      }
+    });
 
-  // initialize on DOM ready
-  document.addEventListener('DOMContentLoaded', function(){ initVariantLabels(); });
+    // --- Handle Add to Cart ---
+    productForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      const variantId = variantIdInput.value;
+      ajaxAddToCart(variantId);
+    });
 
-  // If your theme dynamically re-renders options, re-run init for the replaced container.
-  // Example: If you know the section root (e.g. '#Product-{{ section.id }}'), you can call initVariantLabels(rootElement)
-})();
-
-
-</script>
-
-
- <style>
-  /* Page layout container */
-  .page-width {
-    max-width: 1440px;
-    margin: 0 auto;
-    padding-left: 2rem;
-    padding-right: 2rem;
-  }
-
-  .product-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 3rem;
-    align-items: start;
-  }
-
-  /* Product media */
-  .product-information__media {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .product-information__media img {
-    width: 100%;
-    border-radius: 10px;
-    transition: opacity 0.3s ease;
-    object-fit: cover;
-  }
-
-  .hidden-by-color {
-    display: none !important;
-  }
-
-  /* Product details */
-  .product-information {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-  }
-
-  .product-title {
-    font-size: 2rem;
-    font-weight: 600;
-    margin-bottom: 0.75rem;
-  }
-
-  .product-price {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #111;
-    margin-bottom: 1.2rem;
-  }
-
-  /* Color options */
-  .color-options {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.8rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .color-option-label {
-    cursor: pointer;
-    background: #f5f5f5;
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    transition: all 0.2s ease;
-    font-size: 0.95rem;
-  }
-
-  .color-option-label:hover,
-  .color-option-label input:checked + span {
-    border-color: #000;
-  }
-
-  /* 🛒 Add to Cart */
-  .product-form {
-    margin-top: 1rem;
-  }
-
-  .button--primary {
-    background: #000;
-    color: #fff;
-    padding: 0.9rem 1.8rem;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    font-weight: 600;
-    width: 100%;
-    font-size: 1rem;
-    transition: background 0.2s ease;
-  }
-
-  .button--primary:hover:not(:disabled) {
-    background: #222;
-  }
-
-  .button--primary:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  .cart-status-message {
-    margin-top: 0.6rem;
-    font-size: 0.95rem;
-  }
-
-  .product-description {
-    margin-top: 1.8rem;
-    color: #555;
-    line-height: 1.6;
-    font-size: 0.98rem;
-  }
-
-
-/* ----- Variant Option Styles ----- */
-
-fieldset[data-option-name] {
-  border: none;
-  margin: 0 0 1.5rem 0;
-  padding: 0;
-}
-
-legend {
-  font-size: 0.95rem;
-  font-weight: 500;
-  margin-bottom: 0.6rem;
-  color: #444;
-}
-
-fieldset[data-option-name] .product-form__input {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-}
-
-fieldset[data-option-name] input[type="radio"] {
-  display: none;
-}
-
-fieldset[data-option-name] label {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1.5px solid #ddd;
-  border-radius: 1.5rem;
-  background: #fff;
-  color: #111;
-  font-size: 0.95rem;
-  padding: 0.55rem 1.3rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-fieldset[data-option-name] label:hover {
-  border-color: #000;
-}
-
-fieldset[data-option-name] input[type="radio"]:checked + label {
-  background: #000;
-  color: #fff;
-  border-color: #000;
-}/* hide native radios */
-fieldset[data-option-name] input[type="radio"],
-.product-option-fieldset input[type="radio"] {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-  width: 0;
-  height: 0;
-}
-
-/* base button look for label and span */
-fieldset[data-option-name] label,
-.product-option-fieldset label {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1.5px solid #ddd;
-  border-radius: 1.5rem;
-  background: #fff;
-  color: #111;
-  font-size: 0.95rem;
-  padding: 0.55rem 1.3rem;
-  cursor: pointer;
-  transition: all 0.18s ease;
-}
-
-/* if your markup is <label><input><span>Text</span></label> style the span for checked state */
-fieldset[data-option-name] label span,
-.product-option-fieldset label span {
-  display: inline-block;
-  width: 100%;
-  text-align: center;
-}
-
-/* hover */
-fieldset[data-option-name] label:hover,
-.product-option-fieldset label:hover {
-  border-color: #000;
-}
-
-/* Pattern A: <input id="x"><label for="x"> -> style label adjacent when input is checked */
-input[type="radio"]:checked + label {
-  background: #000;
-  color: #fff;
-  border-color: #000;
-}
-
-/* Pattern B: <label><input><span>Text</span></label> -> style span when input is checked */
-label > input[type="radio"]:checked + span {
-  background: #000;
-  color: #fff;
-  border-radius: 1.5rem;
-  display: inline-block;
-}
-
-/* Generic active class fallback (works regardless of markup) */
-label.active {
-  background: #000 !important;
-  color: #fff !important;
-  border-color: #000 !important;
-  box-shadow: 0 0 0 1px #000 inset;
-}
-
-/* responsive tweaks */
-@media (max-width:480px){
-  fieldset[data-option-name] label,
-  .product-option-fieldset label {
-    padding: 0.45rem 1rem;
-    font-size: 0.9rem;
-  }
-}
-
-@media (max-width: 480px) {
-  fieldset[data-option-name] label {
-    padding: 0.45rem 1rem;
-    font-size: 0.9rem;
-  }
-}
-
-
-  /* Responsive Layout */
-  @media (max-width: 992px) {
-    .page-width {
-      padding-left: 1.5rem;
-      padding-right: 1.5rem;
-    }
-  }
-
-  @media (max-width: 768px) {
-    .product-grid {
-      grid-template-columns: 1fr;
-      gap: 2rem;
-    }
-    .page-width {
-      padding-left: 1.25rem;
-      padding-right: 1.25rem;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .page-width {
-      padding-left: 1rem;
-      padding-right: 1rem;
-    }
-  }
-</style>
-
+    // --- Initial setup ---
+    const selected = getSelectedOptions();
+    const initialVariant = findMatchingVariant(selected);
+    if (selected.Color) updateImages(selected.Color);
+    updateVariantUI(initialVariant);
+});
+  </script>
 </section>
